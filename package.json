@@ -1,0 +1,7 @@
+{
+  "name": "web2apk-vercel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Web2APK gratis: backend Vercel + GitHub Actions",
+  "engines": { "node": ">=18" }
+}
