@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web2APK - ubah website jadi aplikasi Android, gratis</title>
+<meta name="description" content="Ubah link website, kode HTML, atau file ZIP jadi APK Android. Gratis, tanpa akun, dibuat otomatis lewat GitHub Actions.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23E9B72F'/%3E%3Crect x='2' y='2' width='28' height='28' fill='none' stroke='black' stroke-width='4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Work+Sans:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="/web2apk-site/style.css">
+<script src="/anti-clone.js" data-mode="guard"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script defer src="/web2apk-site/app.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <span class="logo">Web2APK</span>
+    <span class="sticker">Gratis 100%</span>
+  </header>
+
+  <section class="hero">
+    <div>
+      <h1>Website kamu jadi aplikasi Android, gratis.</h1>
+      <p class="lead">Isi form, tunggu beberapa menit, lalu unduh APK-nya. Tanpa akun, tanpa token, tanpa biaya.</p>
+      <p class="lead">Bisa dari link website, kode HTML, atau file ZIP. Kamu juga bisa mengunci orientasi layar dan memilih izin yang dibutuhkan aplikasi.</p>
+    </div>
+    <ol class="flow" aria-label="Alur pembuatan APK">
+      <li><b>1</b><span>Isi form di bawah dan tekan tombol buat.</span></li>
+      <li><b>2</b><span>APK dibuat otomatis di GitHub. Tunggu sampai selesai.</span></li>
+      <li><b>3</b><span>Unduh APK, lalu pasang di HP.</span></li>
+    </ol>
+  </section>
+
+  <noscript><p class="error">Halaman ini butuh JavaScript. Aktifkan JavaScript di browser lalu muat ulang.</p></noscript>
+
+  <form id="builder" class="builder" novalidate>
+    <header><h2>Buat APK</h2></header>
+
+    <div class="block">
+      <h3>Aplikasi</h3>
+      <p class="hint">Nama muncul di bawah ikon aplikasi. Package name adalah identitas unik aplikasi di Android.</p>
+      <div class="cols">
+        <div class="field">
+          <label for="appName">Nama aplikasi</label>
+          <input type="text" id="appName" maxlength="50" autocomplete="off" placeholder="Toko Saya" required>
+        </div>
+        <div class="field">
+          <label for="pkg">Package name</label>
+          <input type="text" id="pkg" maxlength="150" autocomplete="off" spellcheck="false" placeholder="com.toko.saya" required>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>Ikon</h3>
+      <p class="hint">Gambar apa saja (PNG, JPG, WebP). Dipotong persegi otomatis. Kosongkan untuk memakai ikon bawaan.</p>
+      <div class="icon-row">
+        <div class="icon-box" id="iconBox"><span id="iconEmpty">Bawaan</span><img id="iconPreview" alt="Pratinjau ikon" hidden></div>
+        <div class="field">
+          <label for="icon">Pilih gambar ikon</label>
+          <input type="file" id="icon" accept="image/png,image/jpeg,image/webp,image/gif">
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>Isi aplikasi</h3>
+      <p class="hint">Pilih dari mana aplikasi mengambil isinya.</p>
+      <div class="tabs" role="tablist" aria-label="Sumber isi aplikasi">
+        <button type="button" class="tab" role="tab" data-source="url" aria-selected="true">Link website</button>
+        <button type="button" class="tab" role="tab" data-source="html" aria-selected="false" tabindex="-1">Kode HTML</button>
+        <button type="button" class="tab" role="tab" data-source="zip" aria-selected="false" tabindex="-1">File ZIP</button>
+      </div>
+
+      <div class="panel" id="panel-url">
+        <div class="field">
+          <label for="siteUrl">Alamat website</label>
+          <input type="url" id="siteUrl" placeholder="https://contoh.com" autocomplete="off">
+          <p class="hint small">Harus diawali https://. Aplikasi akan membuka website ini di dalamnya.</p>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-html" hidden>
+        <div class="field">
+          <label for="htmlCode">Kode HTML</label>
+          <textarea id="htmlCode" rows="9" spellcheck="false" placeholder="&lt;!DOCTYPE html&gt;..."></textarea>
+        </div>
+        <div class="field">
+          <label for="htmlFile">Atau pilih file .html</label>
+          <input type="file" id="htmlFile" accept=".html,.htm,text/html">
+        </div>
+        <p class="hint small">Satu file HTML saja. CSS dan JavaScript tulis langsung di dalamnya.</p>
+      </div>
+
+      <div class="panel" id="panel-zip" hidden>
+        <div class="field">
+          <label for="zipFile">File ZIP</label>
+          <input type="file" id="zipFile" accept=".zip,application/zip">
+        </div>
+        <p class="hint small">ZIP harus punya index.html (di dalam folder pun boleh). Maksimal 3 MB per file dan 25 MB total.</p>
+        <p class="zip-info" id="zipInfo" hidden></p>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>Orientasi layar</h3>
+      <p class="hint">Atur bagaimana layar aplikasi berputar.</p>
+      <div class="opts three">
+        <label class="opt"><input type="radio" name="orientation" value="portrait"><span class="opt-t">Kunci potret</span><span class="opt-d">Selalu tegak.</span></label>
+        <label class="opt"><input type="radio" name="orientation" value="landscape"><span class="opt-t">Kunci lanskap</span><span class="opt-d">Selalu mendatar.</span></label>
+        <label class="opt"><input type="radio" name="orientation" value="auto" checked><span class="opt-t">Otomatis</span><span class="opt-d">Ikut putaran HP.</span></label>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3>Izin aplikasi</h3>
+      <p class="hint">Centang hanya yang dibutuhkan. Semakin sedikit izin, semakin mudah pengguna percaya.</p>
+      <p class="always"><span class="chip">Internet</span><span class="chip">Status jaringan</span> selalu aktif.</p>
+      <div class="opts perms">
+        <label class="opt chk"><input type="checkbox" name="perm" value="notification"><span class="opt-t">Notifikasi</span><span class="opt-d">Menampilkan pemberitahuan.</span></label>
+        <label class="opt chk"><input type="checkbox" name="perm" value="camera"><span class="opt-t">Kamera</span><span class="opt-d">Mengambil foto dan memindai.</span></label>
+        <label class="opt chk"><input type="checkbox" name="perm" value="video"><span class="opt-t">Video dan perekaman</span><span class="opt-d">Merekam video dengan suara.</span></label>
+        <label class="opt chk"><input type="checkbox" name="perm" value="audio"><span class="opt-t">Audio</span><span class="opt-d">Merekam suara lewat mikrofon.</span></label>
+        <label class="opt chk"><input type="checkbox" name="perm" value="location"><span class="opt-t">Lokasi</span><span class="opt-d">Membaca posisi saat app dibuka.</span></label>
+        <label class="opt chk"><input type="checkbox" name="perm" value="file_manager"><span class="opt-t">File manager</span><span class="opt-d">Unggah dan unduh file, akses media.</span></label>
+        <label class="opt chk"><input type="checkbox" name="perm" value="bluetooth"><span class="opt-t">Bluetooth</span><span class="opt-d">Izin saja. Browser bawaan Android belum mendukung Web Bluetooth.</span></label>
+        <label class="opt chk"><input type="checkbox" name="perm" value="vibrate"><span class="opt-t">Getar</span><span class="opt-d">Menggetarkan HP.</span></label>
+        <label class="opt chk"><input type="checkbox" name="perm" value="wifi_state"><span class="opt-t">Status Wi-Fi</span><span class="opt-d">Membaca status Wi-Fi.</span></label>
+        <label class="opt chk"><input type="checkbox" name="perm" value="wake_lock"><span class="opt-t">Layar tetap menyala</span><span class="opt-d">Layar tidak mati saat app dibuka.</span></label>
+      </div>
+    </div>
+
+    <p class="error" id="formError" role="alert" hidden></p>
+    <button type="submit" class="submit" id="submitBtn">Buat APK sekarang</button>
+  </form>
+
+  <section class="result" id="result" aria-live="polite" hidden>
+    <h2 id="resultTitle">Tunggu, APK sedang dibuat</h2>
+    <p>APK kamu dibuat di GitHub, di repo dengan nama acak ini:</p>
+    <code class="repo" id="repoName">Menyiapkan repo...</code>
+    <div class="actions">
+      <a class="btn alt" id="repoLink" href="#" target="_blank" rel="noopener" hidden>Buka repo di GitHub</a>
+      <button type="button" class="btn alt" id="copyRepo" hidden>Salin nama repo</button>
+    </div>
+    <p class="status" id="statusText">Menyiapkan repo di GitHub...</p>
+    <ul class="steps" id="steps"></ul>
+    <div class="done" id="downloadBox" hidden>
+      <a class="btn big" id="downloadBtn" href="#">Unduh APK</a>
+      <p class="hint small">Saat memasang, Android akan meminta izin memasang dari sumber yang tidak dikenal. Izinkan untuk browser yang kamu pakai.</p>
+    </div>
+    <p class="hint small">Simpan nama repo di atas. Kalau halaman ini ditutup, APK tetap bisa diambil di tab Releases pada repo itu.</p>
+  </section>
+
+  <footer class="foot">
+    <p>Web2APK membuat APK debug lewat GitHub Actions. Cocok untuk pemakaian pribadi dan uji coba.</p>
+  </footer>
+</div>
+</body>
+</html>
